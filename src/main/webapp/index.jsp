@@ -303,8 +303,12 @@
     <h2>🛒 E-Commerce Store</h2>
     <div>
         <a href="products">🏠 Home</a>
-        <a href="products">📦 Products</a>
-        <a href="profile_input.jsp">👤 My Profile</a>
+        <% if (session.getAttribute("customer_name") != null) { %>
+            <span style="color: #28a745;">Welcome, <%= session.getAttribute("customer_name") %>!</span>
+            <a href="profile">👤 My Profile</a>
+        <% } else { %>
+            <a href="profile_input.jsp">👤 Login/Find Profile</a>
+        <% } %>
         <a href="#cart">🛒 Cart <span class="cart-badge"><%= cartItemCount %></span></a>
     </div>
 </div>
