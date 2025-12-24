@@ -9,37 +9,37 @@ import java.net.http.*;
 @WebServlet("/submitOrder")
 public class OrderServlet extends HttpServlet {
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+   protected void doPost(HttpServletRequest request, HttpServletResponse response)
+           throws ServletException, IOException {
 
-        String customerId = request.getParameter("customer_id");
-        String productId = request.getParameter("product_id");
-        String quantity = request.getParameter("quantity");
+       String customerId = request.getParameter("customer_id");
+       String productId = request.getParameter("product_id");
+       String quantity = request.getParameter("quantity");
 
-        String total = request.getParameter("total");
+       String total = request.getParameter("total");
 
-        String jsonPayload = String.format(
-                "{\"customer_id\":%s,\"total_amount\":%s,\"products\":[{\"product_id\":%s,\"quantity\":%s}]}",
-                customerId, total, productId, quantity
-        );
+       String jsonPayload = String.format(
+               "{\"customer_id\":%s,\"total_amount\":%s,\"products\":[{\"product_id\":%s,\"quantity\":%s}]}",
+               customerId, total, productId, quantity
+       );
 
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest flaskRequest = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:5001/api/orders/create"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
-                .build();
+       HttpClient client = HttpClient.newHttpClient();
+       HttpRequest flaskRequest = HttpRequest.newBuilder()
+               .uri(URI.create("http://localhost:5001/api/orders/create"))
+               .header("Content-Type", "application/json")
+               .POST(HttpRequest.BodyPublishers.ofString(jsonPayload))
+               .build();
 
-        try {
-            HttpResponse<String> flaskResponse =
-                    client.send(flaskRequest, HttpResponse.BodyHandlers.ofString());
+       try {
+           HttpResponse<String> flaskResponse =
+                   client.send(flaskRequest, HttpResponse.BodyHandlers.ofString());
 
-            request.setAttribute("orderResponse", flaskResponse.body());
-            request.getRequestDispatcher("/confirmations.jsp").forward(request, response);
+           request.setAttribute("orderResponse", flaskResponse.body());
+           request.getRequestDispatcher("/confirmations.jsp").forward(request, response);
 
-        } catch (Exception e) {
-            response.getWriter().println("Order Service not running");
-        }
-    }
+       } catch (Exception e) {
+           response.getWriter().println("Order Service not running");
+       }
+   }
 }
