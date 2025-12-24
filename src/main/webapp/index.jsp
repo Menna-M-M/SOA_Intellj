@@ -304,10 +304,10 @@
     <div>
         <a href="products">🏠 Home</a>
         <a href="products">📦 Products</a>
+        <a href="profile_input.jsp">👤 My Profile</a>
         <a href="#cart">🛒 Cart <span class="cart-badge"><%= cartItemCount %></span></a>
     </div>
 </div>
-
 <!-- MESSAGES -->
 <%
     String message = (String) session.getAttribute("message");
