@@ -304,10 +304,10 @@
     <div>
         <a href="products">🏠 Home</a>
         <a href="products">📦 Products</a>
+        <a href="profile_input.jsp">👤 My Profile</a>
         <a href="#cart">🛒 Cart <span class="cart-badge"><%= cartItemCount %></span></a>
     </div>
 </div>
-
 <!-- MESSAGES -->
 <%
     String message = (String) session.getAttribute("message");
@@ -363,11 +363,11 @@
                 }
             %>
         </div>
-        <div class="cart-total">
-            Total: $<%= String.format("%.2f", cartTotal) %>
-        </div>
+<%--        <div class="cart-total">--%>
+<%--            Total: $<%= String.format("%.2f", cartTotal) %>--%>
+<%--        </div>--%>
         <div style="margin-top: 20px;">
-            <form action="checkout.jsp" method="get" style="display: inline;">
+            <form action="checkout" method="post">
                 <button type="submit" class="btn-checkout">✓ Proceed to Checkout</button>
             </form>
             <form action="cart" method="post" style="display: inline;">
