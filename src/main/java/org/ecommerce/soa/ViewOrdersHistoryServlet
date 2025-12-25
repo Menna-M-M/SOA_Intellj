@@ -1,0 +1,106 @@
+package com.ecommerce.soa;
+
+import com.ecommerce.soa.CustomerService;
+import com.ecommerce.soa.OrderService;
+import com.ecommerce.models.Order;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+@WebServlet("/viewOrdersHistory")
+public class ViewOrdersHistoryServlet extends HttpServlet {
+
+    private CustomerService customerService;
+    private OrderService orderService;
+
+    @Override
+    public void init() throws ServletException {
+        customerService = new CustomerService();
+        orderService = new OrderService();
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+
+        // Check if user is logged in
+        if (session == null || session.getAttribute("customerId") == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        String customerId = (String) session.getAttribute("customerId");
+        List<Order> ordersList = new ArrayList<>();
+        String errorMessage = null;
+
+        try {
+            // Step 1: Get customer's order IDs from Customer Service
+            String ordersResponse = customerService.getCustomerOrders(customerId);
+
+            if (ordersResponse != null && !ordersResponse.isEmpty()) {
+                JsonArray ordersArray = JsonParser.parseString(ordersResponse).getAsJsonArray();
+
+                // Step 2: Get detailed information for each order from Order Service
+                for (int i = 0; i < ordersArray.size(); i++) {
+                    JsonObject orderSummary = ordersArray.get(i).getAsJsonObject();
+                    String orderId = orderSummary.get("order_id").getAsString();
+
+                    // Fetch full order details
+                    String orderDetailsResponse = orderService.getOrderDetails(orderId);
+
+                    if (orderDetailsResponse != null && !orderDetailsResponse.isEmpty()) {
+                        JsonObject orderDetails = JsonParser.parseString(orderDetailsResponse).getAsJsonObject();
+
+                        // Create Order object
+                        Order order = new Order();
+                        order.setOrderId(orderId);
+                        order.setCustomerId(orderDetails.get("customer_id").getAsString());
+                        order.setOrderDate(orderDetails.get("order_date").getAsString());
+                        order.setStatus(orderDetails.get("status").getAsString());
+                        order.setTotalAmount(orderDetails.get("total_amount").getAsDouble());
+
+                        // Parse order items
+                        JsonArray items = orderDetails.getAsJsonArray("items");
+                        List<Order.OrderItem> orderItems = new ArrayList<>();
+
+                        for (int j = 0; j < items.size(); j++) {
+                            JsonObject item = items.get(j).getAsJsonObject();
+                            Order.OrderItem orderItem = new Order.OrderItem();
+                            orderItem.setProductId(item.get("product_id").getAsString());
+                            orderItem.setProductName(item.get("product_name").getAsString());
+                            orderItem.setQuantity(item.get("quantity").getAsInt());
+                            orderItem.setPrice(item.get("price").getAsDouble());
+                            orderItems.add(orderItem);
+                        }
+
+                        order.setItems(orderItems);
+                        ordersList.add(order);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            errorMessage = "Error retrieving order history: " + e.getMessage();
+            e.printStackTrace();
+        }
+
+        // Set attributes for JSP
+        request.setAttribute("orders", ordersList);
+        request.setAttribute("errorMessage", errorMessage);
+
+        // Forward to JSP page
+        request.getRequestDispatcher("view_orders_history.jsp").forward(request, response);
+    }
+}
